@@ -1,27 +1,42 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PirateCoinScript : MonoBehaviour
 {
-    public float rotationSpeed = 50f; // Speed for spinning
+    public float rotationSpeedX = 50f; // Speed for spinning on the X-axis
+    public float rotationSpeedY = 50f; // Speed for spinning on the Y-axis
+
+    private AudioSource pickupSound; // Reference to the AudioSource
+
+    void Start()
+    {
+        // Get the AudioSource component attached to the coin
+        pickupSound = GetComponent<AudioSource>();
+    }
 
     void Update()
     {
-        // Make the coin spin slowly over time
-        transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
+        // Make the coin spin on the X and Y axes
+        transform.Rotate(Vector3.right, rotationSpeedX * Time.deltaTime); // X-axis spin
+        transform.Rotate(Vector3.up, rotationSpeedY * Time.deltaTime);    // Y-axis spin
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the object that entered is the player
+        // Check if the player touched the coin
         if (other.CompareTag("Player"))
         {
+            // Play the pickup sound
+            pickupSound.Play();
+
             // Notify the Game Manager that a coin was collected
             GameManager.instance.CollectCoin();
 
-            // Destroy the coin
-            Destroy(gameObject);
+            // Disable the coin visuals and collider while the sound plays
+            GetComponent<MeshRenderer>().enabled = false;
+            GetComponent<Collider>().enabled = false;
+
+            // Destroy the coin GameObject after the sound finishes playing
+            Destroy(gameObject, pickupSound.clip.length);
         }
     }
 }

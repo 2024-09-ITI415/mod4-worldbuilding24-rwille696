@@ -1,22 +1,22 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // For reloading scenes
+using UnityEngine.SceneManagement; // For reloading the scene
 using TMPro; // For TextMesh Pro
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance; // Singleton instance
+    public static GameManager instance;
 
     public int coinsCollected = 0; // Number of coins collected
-    public int totalCoins = 25; // Total coins needed to win the game
+    public int totalCoins = 25; // Total coins to win
 
-    public float countdownTimer = 180f; // 3 minutes in seconds
+    public float countdownTimer = 180f; // Timer in seconds
+    public TMP_Text coinText; // TextMesh Pro for coin display
+    public TMP_Text timerText; // TextMesh Pro for timer display
 
-    public TMP_Text coinText; // TextMesh Pro UI element for coin counter
-    public TMP_Text timerText; // TextMesh Pro UI element for countdown timer
+    public GameObject levelCompletePanel; // Reference to the Level Complete Panel UI
 
     void Awake()
     {
-        // Singleton pattern to ensure one GameManager instance
         if (instance == null)
         {
             instance = this;
@@ -29,64 +29,68 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Initialize the UI at the start of the game
         UpdateCoinUI();
         UpdateTimerUI();
     }
 
     void Update()
     {
-        // Update the countdown timer
+        // Update timer
         countdownTimer -= Time.deltaTime;
         UpdateTimerUI();
 
-        // End the game if the timer runs out
+        // End game if timer runs out
         if (countdownTimer <= 0)
         {
-            EndGame(false); // Player loses
+            EndGame(false);
         }
     }
 
     public void CollectCoin()
     {
-        // Increment the coin count
+        // Increment coin count and update UI
         coinsCollected++;
         UpdateCoinUI();
 
         // Check if all coins are collected
         if (coinsCollected >= totalCoins)
         {
-            EndGame(true); // Player wins
+            ShowLevelCompleteScreen();
         }
     }
 
     void UpdateCoinUI()
     {
-        // Update the coin counter text
         coinText.text = $"Coins: {coinsCollected}/{totalCoins}";
     }
 
     void UpdateTimerUI()
     {
-        // Format the timer to show minutes and seconds
         int minutes = Mathf.FloorToInt(countdownTimer / 60);
         int seconds = Mathf.FloorToInt(countdownTimer % 60);
         timerText.text = $"Timer: {minutes:00}:{seconds:00}";
     }
 
+    void ShowLevelCompleteScreen()
+    {
+        // Pause the game and show the Level Complete screen
+        Time.timeScale = 0; // Stop the game
+        levelCompletePanel.SetActive(true);
+    }
+
+    public void RestartGame()
+    {
+        // Reload the scene to restart the game
+        Time.timeScale = 1; // Resume time
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     void EndGame(bool won)
     {
-        // Display a win or lose message in the Console
-        if (won)
+        if (!won)
         {
-            Debug.Log("You collected all the coins! You win!");
+            Debug.Log("Time ran out! Game Over.");
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
-        else
-        {
-            Debug.Log("Time ran out! Game over.");
-        }
-
-        // Reload the current scene
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
